@@ -28,6 +28,14 @@
       ((number? (car input)) (declare (cdr input) (cons (car state) (cons (list(car input)) (car(cdr state))))))
       )))
 
+(define M_retrieve
+  (lambda (input state)
+    (cond
+      ((null? state) null)
+      ((null? input) null)
+      ((eq? input (caar state)) (caadr state))
+      (else (M_retrieve input (rebuild (cdr (car state)) (cdr (cadr state)))))
+      )))
 
 ; Adds values and assoicated variables to the state list
 (define declare*
