@@ -1,5 +1,6 @@
 #lang racket
 (require "simpleParser.rkt")
+(require "statefunction.rkt")
 
 
 ; Implement  +,-,*,/,% as well as ==, !=,<,>,<=,>=, and &&,||,!.
@@ -20,15 +21,9 @@
       ((eq? '% (car expression)) (modulo (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
       )))
 
-(define declare
-  (lambda (input state)
-    (cond
-      ((null? state) (declare input '(()()) ))
-      ((null? input) state)
-      ((number? (car input)) (declare (cdr input) (cons (car state) (cons (list(car input)) (car(cdr state))))))
-      )))
 
-(define retrieve
+
+(define M_retrieve
   (lambda (input state)
     (cond
       ((null? state) null)
@@ -37,20 +32,19 @@
       (else (M_retrieve input (rebuild (cdr (car state)) (cdr (cadr state)))))
       )))
 
-; Adds values and assoicated variables to the state list
-(define declare*
-  (lambda (vars vals state)
+
+
+(define M_declare
+  (lambda (var val state)
     (cond
-      [(null? state) (declare* vars vals '(()()))] ;if the statelist is not implemented, sets up an empty statelist
-      [(null? vars) state] ;if we have added all vars, return statelist
-      ;if we are out of values, add the remaining vars to the statelist with a null value
-      [(null? vals) (declare* (cdr vars) vals (rebuild (cons (car vars) (car state)) (cons '() (cadr state))))]
-      ;else, add the var and it's associated values to the statelist.
-      [else (declare* (cdr vars) (cdr vals) (rebuild (cons (car vars) (car state)) (cons (car vals) (cadr state))))]
-    )
-  )
-  )
+      [(null? state) (M_declare var val '(()()))]
+      [(null? val) (rebuild (cons var (car state)) (cons 'undf (cadr state)))]
+      [else (rebuild (cons var (car state)) (cons val (cadr state)))]
+      )))
 
 
 
-(
+(define rebuild
+  (lambda (lis1 lis2)
+    (cons  lis1 (list lis2))
+    ))
