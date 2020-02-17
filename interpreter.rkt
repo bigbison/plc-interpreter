@@ -28,7 +28,7 @@
       ((number? (car input)) (declare (cdr input) (cons (car state) (cons (list(car input)) (car(cdr state))))))
       )))
 
-(define M_retrieve
+(define retrieve
   (lambda (input state)
     (cond
       ((null? state) null)
@@ -53,7 +53,4 @@
 
 
 
-(define rebuild
-  (lambda (lis1 lis2)
-    (cons  lis1 (list lis2))
-    ))
+(
