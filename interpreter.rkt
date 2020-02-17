@@ -39,11 +39,14 @@
       [(null? vals) (declare* (cdr vars) vals (rebuild (cons (car vars) (car state)) (cons '() (cadr state))))]
       ;else, add the var and it's associated values to the statelist.
       [else (declare* (cdr vars) (cdr vals) (rebuild (cons (car vars) (car state)) (cons (car vals) (cadr state))))]
-      
     )
   )
   )
 
+
+(define retrieve
+  (lambda (var state)
+    (
 
 
 (define rebuild
