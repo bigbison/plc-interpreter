@@ -13,11 +13,11 @@
     (cond
       ((null? expression) (error 'parser "parser should have caught this"))
       ((number? expression) expression)
-      ((eq? '+ (car (cdr expression))) (+ (M_value(car expression) '()) (M_value (car (cdr (cdr expression))) '() )))
-      ((eq? '* (car (cdr expression))) (* (M_value(car expression) '()) (M_value (car (cdr (cdr expression))) '() )))
-      ((eq? '- (car (cdr expression))) (- (M_value(car expression) '()) (M_value (car (cdr (cdr expression))) '() )))
-      ((eq? '/ (car (cdr expression))) (quotient (M_value(car expression) '()) (M_value (car (cdr (cdr expression))) '() )))
-      ((eq? '% (car (cdr expression))) (modulo (M_value(car expression) '()) (M_value (car (cdr (cdr expression))) '() )))
+      ((eq? '+ (car expression)) (+ (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
+      ((eq? '* (car expression)) (* (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
+      ((eq? '- (car expression)) (- (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
+      ((eq? '/ (car expression)) (quotient (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
+      ((eq? '% (car expression)) (modulo (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
       )))
 
 (define declare
@@ -43,10 +43,6 @@
   )
   )
 
-
-(define retrieve
-  (lambda (var state)
-    (
 
 
 (define rebuild
