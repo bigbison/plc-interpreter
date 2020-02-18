@@ -21,11 +21,12 @@
     (cond
       ((null? expression) (error 'parser "parser should have caught this"))
       ((number? expression) expression)
-      ((eq? '+ (car expression)) (+ (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
-      ((eq? '* (car expression)) (* (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
-      ((eq? '- (car expression)) (- (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
-      ((eq? '/ (car expression)) (quotient (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
-      ((eq? '% (car expression)) (modulo (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
+      ((symbol? expression) (retrieve-var-state expression state))
+      ((eq? '+ (car expression)) (+ (M_value(cadr expression) state) (M_value (caddr expression) state )))
+      ((eq? '* (car expression)) (* (M_value(cadr expression) state) (M_value (caddr expression) state )))
+      ((eq? '- (car expression)) (- (M_value(cadr expression) state) (M_value (caddr expression) state )))
+      ((eq? '/ (car expression)) (quotient (M_value(cadr expression) state) (M_value (caddr expression) state )))
+      ((eq? '% (car expression)) (modulo (M_value(cadr expression) state) (M_value (caddr expression) state )))
       )))
 
 (define M_boolean
@@ -43,6 +44,8 @@
       ((eq? '! (car expression)) (not (M_boolean (cadr expression) '())))
       )))
 
+
+
 (define M_declare
   (lambda (var val state)
     (cond
@@ -55,7 +58,7 @@
 (define return?
   (lambda (stmt)
     (cond
-      ((eq? 'return (car statement)) #t)
+      ((eq? 'return (car stmt)) #t)
       (else #f))))
 
 ; checks if our statement is an assign statement
@@ -103,44 +106,55 @@
       ((and (eq? 'var (car statement)) (not (null? (caddr statement)))) #t)
       (else #f))))
 
-; 
-  
+;list of variables
+(define var-list car)
 
+;list of values
+(define val-list cadr)
 
-(define return
-  (lambda (statement)
-    (cond
-    ((null? statement) #f)
-    ((and (eq? (car statement) 'return) (eq? (length statement) 2)) #t)
-    (else #f)
-    )))
-
-(define declaration
-  (lambda (statement)
-    (cond
-      ((null? statement) #f)
-      ((and (eq? (car statement) 'var) (eq? (length statement) 2)) #t)
-      (else #f)
-      )))
-
-(define declare-and-assign
-  (lambda (statement)
-    (cond
-      ((null? statement) #f)
-      ((and (eq? (car statement) 'var) (eq? (length statement) 3)) #t)
-      (else #f)
-      )))
-
-(define assignment
-  (lambda (statement)
-    (cond
-      ((null? statement) #f)
-      ((and (eq? (car statement) '=) (eq? (length statement) 2)) #t)
-      (else #f)
-      )))
-
-
+; rebuilds the correct state format from seperate lists of states and values
 (define rebuild
   (lambda (lis1 lis2)
     (cons  lis1 (list lis2))
     ))
+
+; first part of the state, example for '((x y z) (1 2 3))
+; it returns '((x) (1))
+(define first-state
+  (lambda (state)
+    (list (caar state) (caadr state))))
+
+; rest of the state besides the first, ex. for '((x y z) (1 2 3))
+; it returns '((y z) (2 3))
+(define later-state
+  (lambda (state)
+    (list (cdar state) (cdadr state))))
+
+; attatches the first part of the state to the last, helps with recursing
+; through the state list
+(define attatch-state
+  (lambda (first later)
+    (list (cons (car first) (car later)) (cons (cadr first) (cadr later)))))
+
+
+; retrives the current value of a varaible
+(define retrieve-var-state
+  (lambda (var state)
+    (cond
+      ((null? state) null)
+      ((null? var) null)
+      ((eq? var (caar state)) (caadr state))
+      (else (retrieve-var-state var (rebuild (cdr (car state)) (cdr (cadr state)))))
+      )))
+
+; assigns a value to a variable
+(define assign-var-state
+  (lambda (var val state)
+    (cond
+      ((null? state) null)
+      ((null? val) null)
+      ((null? var) null)
+      ((eq? (car (var-list state)) var) (list (var-list state)
+                                              (cons val (cdr (val-list state)))))
+      (else (attatch-state (first-state state)
+                           (assign-var-state var val (later-state state)))))))
