@@ -73,14 +73,14 @@
   (lambda (conditon then else state)
     (cond
       ((M_boolean condition state) M_state then state)
-      (else M_state else state))))
+      (else M_process-statement else state))))
 
 (define M_while
   (lambda (condition body state)
     (cond
-      ((M_boolean condition state) M_while conditon body (M_state body state)))))
+      ((M_boolean condition state) M_while conditon body (M_process-statement body state)))))
 
-(define M_state
+(define M_process-statement
   (lambda (statement state)
     (cond
       ((declare-assignment? statement) M_declare-assign (cadr statement)
