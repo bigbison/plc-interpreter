@@ -69,6 +69,37 @@
   (lambda (expression state)
     (assign-var-state (cadr expression) (M_value (caddr expression) state) state)))
 
+(define M_if
+  (lambda (condition then state)
+    (cond
+      ((M_boolean condition state) M_state then)
+      (else state))))
+
+(define M_if-else
+  (lambda (conditon then else state)
+    (cond
+      ((M_boolean condition state) M_state then state)
+      (else M_state else state))))
+
+(define M_while
+  (lambda (condition body state)
+    (cond
+      ((M_boolean condition state) M_while conditon body (M_state body state)))))
+
+(define M_state
+  (lambda (statement state)
+    (cond
+      ((declare-assignment? statement) M_declare-assign (cadr statement)
+                                       (caddr statement) state)
+      ((assignment? statement) M_assign (cadr statement) (caddr statement) state)
+      ((declare? statement) M_declare (cadr statememt) state)
+      ((while? stmt) (M_while (cadr stmt) (caddr stmt) s))
+      ((if-else? stmt) (M_if_else (cadr stmt) (caddr stmt)
+                                       (cadddr stmt) s))
+      ((if? stmt) (M_if (cadr stmt) (caddr stmt) s))
+      ((return? stmt) (M_return (cadr stmt) s))
+      (else (error stmt "invalid statement")))))
+
 ; checks if our statement is a return statement
 (define return?
   (lambda (stmt)
@@ -175,6 +206,7 @@
       ((attatch-state (list var 'undf) state)))))
 
 ; assigns a value to a variable
+; TODO throw error if not assigned
 (define assign-var-state
   (lambda (var val state)
     (cond
