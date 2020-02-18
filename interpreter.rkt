@@ -80,19 +80,20 @@
     (cond
       ((M_boolean condition state) M_while conditon body (M_process-statement body state)))))
 
-(define M_process-statement
+;processes each statement in the parse tree
+(define process-statement
   (lambda (statement state)
     (cond
       ((declare-assignment? statement) M_declare-assign (cadr statement)
                                        (caddr statement) state)
       ((assignment? statement) M_assign (cadr statement) (caddr statement) state)
       ((declare? statement) M_declare (cadr statememt) state)
-      ((while? stmt) (M_while (cadr stmt) (caddr stmt) s))
-      ((if-else? stmt) (M_if_else (cadr stmt) (caddr stmt)
-                                       (cadddr stmt) s))
-      ((if? stmt) (M_if (cadr stmt) (caddr stmt) s))
-      ((return? stmt) (M_return (cadr stmt) s))
-      (else (error stmt "invalid statement")))))
+      ((while? statement) (M_while (cadr stmt) (caddr statement) state))
+      ((if-else? statement) (M_if-else (cadr statement) (caddr statement)
+                                       (cadddr statement) state))
+      ((if? statement) (M_if (cadr statement) (caddr statement) state))
+      ((return? statement) (M_return (cadr statement) state))
+      (else (error statement "invalid statement")))))
 
 ; checks if our statement is a return statement
 (define return?
