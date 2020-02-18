@@ -46,12 +46,13 @@
       )))
 
 (define M_declare
-  (lambda (var val state)
-    (cond
-      [(null? state) (M_declare var val '(()()))]
-      [(null? val) (rebuild (cons var (car state)) (cons 'undf (cadr state)))]
-      [else (rebuild (cons var (car state)) (cons val (cadr state)))]
-      )))
+  (lambda (var state)
+    (declare-var-state (var state))))
+
+(define M_declare-assign
+  (lambda (var expression state)
+    (assign-var-state var (M_value expression (declare-var-state var state)) (declare-var-state var state))))
+                      
 
 (define M_return
   (lambda (expression state)
@@ -151,9 +152,21 @@
     (cond
       ((null? state) null)
       ((null? var) null)
+      ((and (eq? var (caar state)) (eq? (caar state) 'undf))
+       error var "variable not declared") ; throw error if not declared
       ((eq? var (caar state)) (caadr state))
+      ((and (eq? var (caar state)) (eq? (caar state) 'true)) #t)
+      ((and (eq? var (caar state)) (eq? (caar state) 'false)) #f)
       (else (retrieve-var-state var (rebuild (cdr (car state)) (cdr (cadr state)))))
       )))
+
+; declares a varaible and adds it to the state list
+(define declare-var-state
+  (lambda (var state)
+    (cond
+      ((null? var) null)
+      ((null? state) null)
+      ((attatch-state (list var 'undf) state)))))
 
 ; assigns a value to a variable
 (define assign-var-state
