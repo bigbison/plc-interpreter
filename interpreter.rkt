@@ -1,10 +1,12 @@
 #lang racket
 (require "simpleParser.rkt")
+(require "statefunction.rkt")
 
 
 ; Implement  +,-,*,/,% as well as ==, !=,<,>,<=,>=, and &&,||,!.
 ; Variables may be true, false or an integer
 
+;if, if else, while, conditional
 
 ;We need to find a way to return a number if the expression is simply a number
 
@@ -19,30 +21,34 @@
     (cond
       ((null? expression) (error 'parser "parser should have caught this"))
       ((number? expression) expression)
-      ((eq? '+ (car expression)) (+ (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
-      ((eq? '* (car expression)) (* (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
-      ((eq? '- (car expression)) (- (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
-      ((eq? '/ (car expression)) (quotient (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
-      ((eq? '% (car expression)) (modulo (M_value(car (cdr expression)) '()) (M_value (car (cdr (cdr expression))) '() )))
+      ((eq? '+ (car expression)) (+ (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
+      ((eq? '* (car expression)) (* (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
+      ((eq? '- (car expression)) (- (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
+      ((eq? '/ (car expression)) (quotient (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
+      ((eq? '% (car expression)) (modulo (M_value(cadr expression) '()) (M_value (caddr expression) '() )))
       )))
 
-
-
-(define declare
-  (lambda (input state)
+(define M_boolean
+  (lambda (expression state)
     (cond
-      ((null? state) (declare input '(()()) ))
-      ((null? input) state)
-      ((number? (car input)) (declare (cdr input) (cons (car state) (cons (list(car input)) (car(cdr state))))))
+      ((null? expression) (error 'parser "invalid op"))
+      ((eq? '== (car expression)) (eq? (M_value (cadr expression) '()) (M_value (caddr expression) '())))
+      ((eq? '!= (car expression)) (not (eq? (M_value (cadr expression) '()) (M_value (caddr expression) '()))))
+      ((eq? '< (car expression)) (< (M_value (cadr expression) '()) (M_value (caddr expression) '())))
+      ((eq? '> (car expression)) (> (M_value (cadr expression) '()) (M_value (caddr expression) '())))
+      ((eq? '<= (car expression)) (<= (M_value (cadr expression) '()) (M_value (caddr expression) '())))
+      ((eq? '>= (car expression)) (>= (M_value (cadr expression) '()) (M_value (caddr expression) '())))
+      ((eq? '&& (car expression)) (and (M_boolean (cadr expression) '()) (M_boolean (caddr expression) '())))
+      ((eq? '|| (car expression)) (or (M_boolean (cadr expression) '()) (M_boolean (caddr expression) '())))
+      ((eq? '! (car expression)) (not (M_boolean (cadr expression) '())))
       )))
 
-(define retrieve
-  (lambda (input state)
+(define M_declare
+  (lambda (var val state)
     (cond
-      ((null? state) null)
-      ((null? input) null)
-      ((eq? input (caar state)) (caadr state))
-      (else (M_retrieve input (rebuild (cdr (car state)) (cdr (cadr state)))))
+      [(null? state) (M_declare var val '(()()))]
+      [(null? val) (rebuild (cons var (car state)) (cons 'undf (cadr state)))]
+      [else (rebuild (cons var (car state)) (cons val (cadr state)))]
       )))
 
 ; checks if our statement is a return statement
@@ -101,20 +107,40 @@
   
 
 
-; Adds values and assoicated variables to the state list
-(define declare*
-  (lambda (vars vals state)
+(define return
+  (lambda (statement)
     (cond
-      [(null? state) (declare* vars vals '(()()))] ;if the statelist is not implemented, sets up an empty statelist
-      [(null? vars) state] ;if we have added all vars, return statelist
-      ;if we are out of values, add the remaining vars to the statelist with a null value
-      [(null? vals) (declare* (cdr vars) vals (rebuild (cons (car vars) (car state)) (cons '() (cadr state))))]
-      ;else, add the var and it's associated values to the statelist.
-      [else (declare* (cdr vars) (cdr vals) (rebuild (cons (car vars) (car state)) (cons (car vals) (cadr state))))]
-    )
-  )
-  )
+    ((null? statement) #f)
+    ((and (eq? (car statement) 'return) (eq? (length statement) 2)) #t)
+    (else #f)
+    )))
+
+(define declaration
+  (lambda (statement)
+    (cond
+      ((null? statement) #f)
+      ((and (eq? (car statement) 'var) (eq? (length statement) 2)) #t)
+      (else #f)
+      )))
+
+(define declare-and-assign
+  (lambda (statement)
+    (cond
+      ((null? statement) #f)
+      ((and (eq? (car statement) 'var) (eq? (length statement) 3)) #t)
+      (else #f)
+      )))
+
+(define assignment
+  (lambda (statement)
+    (cond
+      ((null? statement) #f)
+      ((and (eq? (car statement) '=) (eq? (length statement) 2)) #t)
+      (else #f)
+      )))
 
 
-
-(
+(define rebuild
+  (lambda (lis1 lis2)
+    (cons  lis1 (list lis2))
+    ))
