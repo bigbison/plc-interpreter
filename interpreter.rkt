@@ -161,6 +161,7 @@
       ((attatch-state (list var 'undf) state)))))
 
 ; assigns a value to a variable
+; TODO throw error if not assigned
 (define assign-var-state
   (lambda (var val state)
     (cond
