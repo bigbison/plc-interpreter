@@ -16,6 +16,11 @@
 (define operand2 caddr)
 
 
+(define main
+  (lambda (file)
+    (main (parse file) '(()()))))
+
+
 (define M_value
   (lambda (expression state)
     (cond
@@ -59,6 +64,7 @@
     (M_value expression state)
     ))
 
+; This only works if the statement has already been declared
 (define M_assign
   (lambda (expression state)
     (assign-var-state (cadr expression) (M_value (caddr expression) state) state)))
