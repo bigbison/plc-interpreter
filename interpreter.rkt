@@ -33,18 +33,17 @@
   (lambda (expression state)
     (cond
       ((null? expression) (error 'parser "invalid op"))
-      ((eq? '== (car expression)) (eq? (M_value (cadr expression) '()) (M_value (caddr expression) '())))
-      ((eq? '!= (car expression)) (not (eq? (M_value (cadr expression) '()) (M_value (caddr expression) '()))))
-      ((eq? '< (car expression)) (< (M_value (cadr expression) '()) (M_value (caddr expression) '())))
-      ((eq? '> (car expression)) (> (M_value (cadr expression) '()) (M_value (caddr expression) '())))
-      ((eq? '<= (car expression)) (<= (M_value (cadr expression) '()) (M_value (caddr expression) '())))
-      ((eq? '>= (car expression)) (>= (M_value (cadr expression) '()) (M_value (caddr expression) '())))
-      ((eq? '&& (car expression)) (and (M_boolean (cadr expression) '()) (M_boolean (caddr expression) '())))
-      ((eq? '|| (car expression)) (or (M_boolean (cadr expression) '()) (M_boolean (caddr expression) '())))
-      ((eq? '! (car expression)) (not (M_boolean (cadr expression) '())))
+      ((symbol? expression) (retrieve-var-state expression state))
+      ((eq? '== (car expression)) (eq? (M_value (cadr expression) state) (M_value (caddr expression) state)))
+      ((eq? '!= (car expression)) (not (eq? (M_value (cadr expression) state) (M_value (caddr expression) state))))
+      ((eq? '< (car expression)) (< (M_value (cadr expression) state) (M_value (caddr expression) state)))
+      ((eq? '> (car expression)) (> (M_value (cadr expression) state) (M_value (caddr expression) state)))
+      ((eq? '<= (car expression)) (<= (M_value (cadr expression) state) (M_value (caddr expression) state)))
+      ((eq? '>= (car expression)) (>= (M_value (cadr expression) state) (M_value (caddr expression) state)))
+      ((eq? '&& (car expression)) (and (M_boolean (cadr expression) state) (M_boolean (caddr expression) state)))
+      ((eq? '|| (car expression)) (or (M_boolean (cadr expression) state) (M_boolean (caddr expression) state)))
+      ((eq? '! (car expression)) (not (M_boolean (cadr expression) state)))
       )))
-
-
 
 (define M_declare
   (lambda (var state)
@@ -54,6 +53,15 @@
   (lambda (var expression state)
     (assign-var-state var (M_value expression (declare-var-state var state)) (declare-var-state var state))))
                       
+
+(define M_return
+  (lambda (expression state)
+    (M_value expression state)
+    ))
+
+(define M_assign
+  (lambda (expression state)
+    (assign-var-state (cadr expression) (M_value (caddr expression) state) state)))
 
 ; checks if our statement is a return statement
 (define return?
